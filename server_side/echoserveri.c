@@ -3,10 +3,10 @@
  */
 
 #include "csapp.h"
-
+#define NB_PROC 5
 #define MAX_NAME_LEN 256
 
-pid_t pid_fils[5];
+pid_t pid_fils[NB_PROC];
 
 void echo(int connfd);
 
@@ -46,7 +46,7 @@ void socket_fils(int listenfd, socklen_t clientlen, struct sockaddr_in clientadd
     }
 }
 
-int main(int argc, char **argv)
+int main()
 {
     int listenfd, port;
     socklen_t clientlen;
@@ -54,11 +54,7 @@ int main(int argc, char **argv)
     char client_ip_string[INET_ADDRSTRLEN];
     char client_hostname[MAX_NAME_LEN];
     
-    if (argc != 2) {
-        fprintf(stderr, "usage: %s <port>\n", argv[0]);
-        exit(0);
-    }
-    port = atoi(argv[1]);
+    port = 2121;
     
     clientlen = (socklen_t)sizeof(clientaddr);
 
