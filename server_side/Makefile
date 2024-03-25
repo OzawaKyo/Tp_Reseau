@@ -19,7 +19,7 @@ INCLUDE = csapp.h
 OBJS = csapp.o echo.o
 INCLDIR = -I.
 
-PROGS = ./server_side/echoserveri ./client_side/echoclient 
+PROGS = echoserveri ../client_side/echoclient 
 
 
 all: $(PROGS)
