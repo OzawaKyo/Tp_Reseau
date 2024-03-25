@@ -25,6 +25,8 @@ void echo(int connfd) {
         if (strncmp(buf, "get ", 4) == 0) {
             char* filename = buf + 4;
             printf("Server received request for file %s\n", filename);
+            //create the file with the name filename
+
             FILE* file = Fopen(filename, "r");
             if (file != NULL) {
                 char filebuf[MAXLINE];
