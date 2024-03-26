@@ -1,10 +1,6 @@
-/*
- * echoclient.c - An echo client
- */
 #include "csapp.h"
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
     int clientfd, port;
     char *host, buf[MAXLINE];
     rio_t rio;
@@ -16,30 +12,35 @@ int main(int argc, char **argv)
     host = argv[1];
     port = 2121;
 
-    /*
-     * Note that the 'host' can be a name or an IP address.
-     * If necessary, Open_clientfd will perform the name resolution
-     * to obtain the IP address.
-     */
     clientfd = Open_clientfd(host, port);
-    
-    /*
-     * At this stage, the connection is established between the client
-     * and the server OS ... but it is possible that the server application
-     * has not yet called "Accept" for this connection
-     */
-    printf("client connected to server OS\n"); 
-    
     Rio_readinitb(&rio, clientfd);
 
     while (Fgets(buf, MAXLINE, stdin) != NULL) {
         Rio_writen(clientfd, buf, strlen(buf));
-        if (Rio_readlineb(&rio, buf, MAXLINE) > 0) {
-            Fputs(buf, stdout);
-        } else { /* the server has prematurely closed the connection */
-            break;
+        if (strncmp(buf, "get ", 4) == 0) {
+            char filename[MAXLINE];
+            sscanf(buf + 4, "%s", filename);
+            char filebuf[MAXLINE];
+            if (Rio_readlineb(&rio, buf, MAXLINE) > 0 && strncmp(buf, "File not found", 14) != 0) {
+                FILE* file = Fopen(filename, "wb");
+                if (file != NULL) {
+                    printf("Receiving file: %s\n", filename);
+                    ssize_t bytes_read;
+                    while ((bytes_read = Rio_readnb(&rio, filebuf, MAXLINE)) > 0) {
+                        printf("Received %ld bytes\n", bytes_read);
+                        Fwrite(filebuf, 1, bytes_read, file);
+                    }
+                    Fclose(file);
+                    printf("File received and saved: %s\n", filename);
+                } else {
+                    printf("Error: Failed to open file for writing.\n");
+                }
+            }else{
+                printf("Error: File not found.\n");
+            }
         }
     }
     Close(clientfd);
     exit(0);
 }
+
