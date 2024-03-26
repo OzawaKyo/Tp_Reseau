@@ -10,9 +10,9 @@ void echo(int connfd)
   rio_t rio;
 
   // Initializes a read buffer for the descriptor connfd
-  Rio_readinitb(&rio, connfd);
+  Rio_readinitb(&rio, connfd); // TODO: WHY ?
   // Reads a line from the descriptor connfd (The clients request)
-  while ((n = Rio_readlineb(&rio, buf, MAXLINE)) != 0)
+  while ((n = Rio_readlineb(&rio, buf, MAXLINE)) != 0) // TODO: Maxline too large
   {
     // If the client wants to get a file
     if (strncmp(buf, "get ", 4) == 0)
@@ -28,6 +28,7 @@ void echo(int connfd)
         char filebuf[MAXLINE];
         ssize_t bytes_read;
 
+        // TODO: fstat pour avoir la taille du fichier
         fseek(file, 0, SEEK_END);                     // Seek to the end of the file
         long file_size = ftell(file);                 // Get the current file pointer
         rewind(file);                                 // Seek back to the beginning of the file

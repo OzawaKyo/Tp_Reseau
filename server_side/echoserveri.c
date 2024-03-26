@@ -15,6 +15,7 @@ void echo(int connfd);
  * (IPv6 is not supported)
  */
 
+// TODO: Rework
 void handler(int sig)
 {
   for (int i = 0; i < 5; i++)
@@ -37,6 +38,7 @@ void socket_fils(int listenfd)
   {
     // Accept a connection request from a client
     clientlen = sizeof(clientaddr);
+    // TODO: Recheck slides - S'assurer pour tout les OS + Check result of Accept
     int connfd = Accept(listenfd, (SA *)&clientaddr, &clientlen);
 
     /* determine the name of the client */
@@ -68,8 +70,8 @@ int main()
   // New SIGINT behavior for the main process
   Signal(SIGINT, handler);
 
-  while (i < NB_PROC)
-  { // Create NB_PROC child processes
+  while (i < NB_PROC) // TODO: Create al child processes before then the rest
+  {                   // Create NB_PROC child processes
     fils = Fork();
     if (fils == 0)
     { // child process
