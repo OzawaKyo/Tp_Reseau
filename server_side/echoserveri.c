@@ -18,7 +18,7 @@ void echo(int connfd);
 void handler(int sig)
 {
   for (int i = 0; i < 5; i++)
-  {
+  { // Kill all child processes
     printf("fils mort {%d}\n", pid_fils[i]);
     kill(SIGINT, pid_fils[i]);
     waitpid(-1, NULL, 0);
@@ -35,6 +35,7 @@ void socket_fils(int listenfd)
 
   while (1)
   {
+    // Accept a connection request from a client
     clientlen = sizeof(clientaddr);
     int connfd = Accept(listenfd, (SA *)&clientaddr, &clientlen);
 
@@ -62,11 +63,13 @@ int main()
 
   port = 2121;
 
+  // Create a listening descriptor
   listenfd = Open_listenfd(port);
+  // New SIGINT behavior for the main process
   Signal(SIGINT, handler);
 
   while (i < NB_PROC)
-  {
+  { // Create NB_PROC child processes
     fils = Fork();
     if (fils == 0)
     { // child process
