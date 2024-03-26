@@ -24,11 +24,15 @@ void handler(int sig) {
     exit(0);
 }
 
-void socket_fils(int listenfd, socklen_t clientlen, struct sockaddr_in clientaddr, char *client_ip_string, char *client_hostname) {
-    int connfd;
+void socket_fils(int listenfd) {
+    socklen_t clientlen;
+    struct sockaddr_in clientaddr;
+    char client_ip_string[INET_ADDRSTRLEN];
+    char client_hostname[MAX_NAME_LEN];
+    
     while (1) {
-
-        connfd = Accept(listenfd, (SA *)&clientaddr, &clientlen);
+        clientlen = sizeof(clientaddr);
+        int connfd = Accept(listenfd, (SA *)&clientaddr, &clientlen);
 
         /* determine the name of the client */
         Getnameinfo((SA *) &clientaddr, clientlen,
@@ -46,28 +50,23 @@ void socket_fils(int listenfd, socklen_t clientlen, struct sockaddr_in clientadd
     }
 }
 
-int main()
-{
+int main() {
     int listenfd, port;
-    socklen_t clientlen;
-    struct sockaddr_in clientaddr;
-    char client_ip_string[INET_ADDRSTRLEN];
-    char client_hostname[MAX_NAME_LEN];
-    
-    port = 2121;
-    
-    clientlen = (socklen_t)sizeof(clientaddr);
-
-    listenfd = Open_listenfd(port);
     pid_t fils;
     int i = 0;
+    
+    port = 2121;
+
+    listenfd = Open_listenfd(port);
     Signal(SIGINT, handler);
+
     while (i < 5) {
         fils = Fork();
-        if (fils == 0) { //fils
+        if (fils == 0) { // child process
             Signal(SIGINT, SIG_DFL);
-            socket_fils(listenfd,clientlen,clientaddr,client_ip_string,client_hostname);
-        } else if (fils > 0) { //père
+            socket_fils(listenfd);
+            exit(0); // Ensure child process exits after handling connections
+        } else if (fils > 0) { // parent process
             pid_fils[i] = fils;
             i++;
         } else {
@@ -78,4 +77,3 @@ int main()
     while (1);
     exit(0);
 }
-
