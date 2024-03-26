@@ -43,17 +43,12 @@ int main(int argc, char **argv)
         // Read the file until the total bytes read is equal to the file size
         while (total_bytes_read < file_size)
         {
-          printf("Client receiving %ld bytes\n", file_size - total_bytes_read);
-          printf("a\n");
           // Read the file in chunks of MAXLINE bytes or less
           bytes_read = Rio_readnb(&rio, filebuf, MIN(file_size - total_bytes_read, MAXLINE));
-          printf("b\n");
           // Write the chunk to the file
           Fwrite(filebuf, 1, bytes_read, file);
-          printf("c\n");
           // Update the total bytes read
           total_bytes_read += bytes_read;
-          printf("d\n");
           Fclose(file);
           printf("File received and saved: %s\n", filename);
         }
