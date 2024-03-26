@@ -49,9 +49,9 @@ int main(int argc, char **argv)
           Fwrite(filebuf, 1, bytes_read, file);
           // Update the total bytes read
           total_bytes_read += bytes_read;
-          Fclose(file);
-          printf("File received and saved: %s\n", filename);
         }
+        Fclose(file);
+        printf("File received and saved: %s\n", filename);
       }
       else
       {
