@@ -23,12 +23,21 @@ void echo(int connfd)
             {
                 char filebuf[MAXLINE];
                 ssize_t bytes_read;
+                
+                fseek(file, 0, SEEK_END);
+                long file_size = ftell(file);
+                rewind(file);
+                rio_writen(connfd, &file_size, sizeof(long));
+
                 while ((bytes_read = Fread(filebuf, 1, MAXLINE, file)) > 0)
                 {
+                    printf("Line: %s\n", filebuf); // ICI
+
                     printf("Server sending %ld bytes\n", bytes_read);
                     Rio_writen(connfd, filebuf, bytes_read);
                 }
                 Fclose(file);
+                printf("File sent and closed: %s\n", filename);
             }
             else
             {
