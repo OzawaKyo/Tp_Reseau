@@ -21,29 +21,27 @@ void echo(int connfd)
       sscanf(buf + 4, "%s", filename);
       printf("Server received request for file %s\n", filename);
 
-      FILE *file = Fopen(filename, "rb");
+      FILE *file = fopen(filename, "rb");
+      long file_size;
 
       if (file != NULL)
       { // If file exists and can be opened
         char filebuf[MAXLINE];
         ssize_t bytes_read;
 
-        // TODO: fstat pour avoir la taille du fichier
-          long file_size;
+        // DONE : fstat pour avoir la taille du fichier
           struct stat file_stat;
           if (fstat(fileno(file), &file_stat) == 0) {
             file_size = file_stat.st_size;
-          }
-          else {
+          }else{
             file_size = -1;
           }
+
         rio_writen(connfd, &file_size, sizeof(long)); // Send the size of the file
 
         // Read the file
         while ((bytes_read = Fread(filebuf, 1, MAXLINE, file)) > 0)
         {
-          printf("Line: %s\n", filebuf);
-
           printf("Server sending %ld bytes\n", bytes_read);
           Rio_writen(connfd, filebuf, bytes_read); // Send the file
         }
@@ -52,15 +50,14 @@ void echo(int connfd)
       }
       else
       {
-        char *msg = "File not found\n";
+        file_size = -1;
+        rio_writen(connfd, &file_size, sizeof(long)); // Send the size of the file
         printf("File not found: %s\n", filename);
-        Rio_writen(connfd, msg, strlen(msg));
       }
     }
     else
     {
       printf("Server received %u bytes\n", (unsigned int)n);
-      Rio_writen(connfd, buf, n);
     }
   }
 }

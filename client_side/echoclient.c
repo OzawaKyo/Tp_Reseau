@@ -35,27 +35,34 @@ int main(int argc, char **argv)
       long file_size;
       Rio_readnb(&rio, &file_size, sizeof(long)); // Read the size of the file
 
-      FILE *file = Fopen(filename, "wb");
-      if (file != NULL)
-      {
-        ssize_t bytes_read;
-        size_t total_bytes_read = 0;
-        // Read the file until the total bytes read is equal to the file size
-        while (total_bytes_read < file_size)
+      //TODO : dont create the file if the server sends an error message (file not found)
+      if (file_size == -1){
+        printf("Error: File not found on server.\n");
+        continue;
+      } 
+      else{
+        FILE *file = Fopen(filename, "wb");
+        if (file != NULL)
         {
-          // Read the file in chunks of MAXLINE bytes or less
-          bytes_read = Rio_readnb(&rio, filebuf, MIN(file_size - total_bytes_read, MAXLINE));
-          // Write the chunk to the file
-          Fwrite(filebuf, 1, bytes_read, file);
-          // Update the total bytes read
-          total_bytes_read += bytes_read;
+          ssize_t bytes_read;
+          size_t total_bytes_read = 0;
+          // Read the file until the total bytes read is equal to the file size
+          while (total_bytes_read < file_size)
+          {
+            // Read the file in chunks of MAXLINE bytes or less
+            bytes_read = Rio_readnb(&rio, filebuf, MIN(file_size - total_bytes_read, MAXLINE));
+            // Write the chunk to the file
+            Fwrite(filebuf, 1, bytes_read, file);
+            // Update the total bytes read
+            total_bytes_read += bytes_read;
+          }
+          Fclose(file);
+          printf("File received and saved: %s\n", filename);
         }
-        Fclose(file);
-        printf("File received and saved: %s\n", filename);
-      }
-      else
-      {
-        printf("Error: Failed to open file for writing.\n");
+        else
+        {
+          printf("Error: Failed to open file for writing.\n");
+        }
       }
     }
   }
