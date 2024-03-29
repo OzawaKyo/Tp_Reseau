@@ -37,6 +37,13 @@ int main(int argc, char **argv)
 
     Rio_writen(clientfd, buf, strlen(buf));
 
+    // si la commande est "bye", fermer la connexion et quitter
+    if (strncmp(buf, "bye\n", 4) == 0) {
+        printf("Connexion terminée.\n");
+        Close(clientfd);
+        exit(0);
+    }
+    
     // Client wants to get a file
     if (strncmp(buf, "get ", 4) == 0)
     {

@@ -2,6 +2,7 @@
  * echo - read and echo text lines until client closes connection
  */
 #include "csapp.h"
+#define BLOCK 4096 // taille du bloc
 
 void echo(int connfd)
 {
@@ -27,7 +28,7 @@ void echo(int connfd)
 
       if (file != NULL)
       { // If file exists and can be opened
-        char filebuf[MAXLINE];
+        char filebuf[BLOCK];
         ssize_t bytes_read;
 
         // DONE : fstat pour avoir la taille du fichier
@@ -41,7 +42,7 @@ void echo(int connfd)
         rio_writen(connfd, &file_size, sizeof(long)); // Send the size of the file
 
         // Read the file
-        while ((bytes_read = Fread(filebuf, 1, MAXLINE, file)) > 0)
+        while ((bytes_read = Fread(filebuf, 1, BLOCK, file)) > 0)
         {
           printf("Server sending %ld bytes\n", bytes_read);
           Rio_writen(connfd, filebuf, bytes_read); // Send the file
