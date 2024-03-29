@@ -28,13 +28,12 @@ void echo(int connfd)
         char filebuf[MAXLINE];
         ssize_t bytes_read;
 
-        // TODO: fstat pour avoir la taille du fichier // DONE
-          long file_size;
-          struct stat file_stat;
-          if (fstat(fileno(file), &file_stat) == 0) {
-            file_size = file_stat.st_size;
-          }
-
+        // TODO: fstat pour avoir la taille du fichier
+        fseek(file, 0, SEEK_END);                     // Seek to the end of the file
+        long file_size = ftell(file);                 // Get the current file pointer
+        rewind(file);                                 // Seek back to the beginning of the file
+        rio_writen(connfd, &file_size, sizeof(long)); // Send the size of the file
+        
         // Read the file
         while ((bytes_read = Fread(filebuf, 1, MAXLINE, file)) > 0)
         {
