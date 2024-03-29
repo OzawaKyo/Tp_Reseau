@@ -18,7 +18,7 @@ void echo(int connfd);
 // TODO: Rework
 void handler(int sig)
 {
-  for (int i = 0; i < 5; i++)
+  for (int i = 0; i < NB_PROC; i++)
   { // Kill all child processes
     printf("fils mort {%d}\n", pid_fils[i]);
     kill(SIGINT, pid_fils[i]);
@@ -26,6 +26,7 @@ void handler(int sig)
   }
   exit(0);
 }
+
 
 void socket_fils(int listenfd)
 {
