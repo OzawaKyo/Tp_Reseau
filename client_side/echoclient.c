@@ -1,4 +1,5 @@
 #include "csapp.h"
+#include <time.h>
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
 int main(int argc, char **argv)
@@ -19,9 +20,20 @@ int main(int argc, char **argv)
   clientfd = Open_clientfd(host, port);
   Rio_readinitb(&rio, clientfd);
 
+  printf("Connected to %s\n", host);
+
   // Waiting client instructions
-  while (Fgets(buf, MAXLINE, stdin) != NULL)
+  while (1)
   {
+
+    // Print the prompt
+    printf("ftp> ");
+
+    // Read the input from the user
+    if (Fgets(buf, MAXLINE, stdin) == NULL)
+    {
+      break;
+    }
 
     Rio_writen(clientfd, buf, strlen(buf));
 
@@ -35,13 +47,18 @@ int main(int argc, char **argv)
       long file_size;
       Rio_readnb(&rio, &file_size, sizeof(long)); // Read the size of the file
 
-      //TODO : dont create the file if the server sends an error message (file not found)
-      if (file_size == -1){
+      // DONE : dont create the file if the server sends an error message (file not found)
+      if (file_size == -1)
+      {
         printf("Error: File not found on server.\n");
         continue;
-      } 
-      else{
+      }
+      else
+      {
         FILE *file = Fopen(filename, "wb");
+
+        clock_t start_time = clock(); // Save the start time
+
         if (file != NULL)
         {
           ssize_t bytes_read;
@@ -57,7 +74,12 @@ int main(int argc, char **argv)
             total_bytes_read += bytes_read;
           }
           Fclose(file);
-          printf("File received and saved: %s\n", filename);
+          printf("Transfer successfully complete.\n");
+
+          clock_t end_time = clock();                                             // Save the end time
+          double temps = (double)(end_time - start_time) / CLOCKS_PER_SEC; // Calculate the elapsed time
+          double vitesse = (total_bytes_read / 1024.0) / temps;          // Calculate average speed in Kbytes/s
+          printf("%ld bytes received in %.4f seconds (%.2f Kbytes/s)\n", total_bytes_read, temps, vitesse);
         }
         else
         {

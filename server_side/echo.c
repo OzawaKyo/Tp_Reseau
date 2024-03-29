@@ -11,6 +11,7 @@ void echo(int connfd)
 
   // Initializes a read buffer for the descriptor connfd
   Rio_readinitb(&rio, connfd); // TODO: WHY ?
+
   // Reads a line from the descriptor connfd (The clients request)
   while ((n = Rio_readlineb(&rio, buf, MAXLINE)) != 0) // TODO: Maxline too large
   {
@@ -51,7 +52,7 @@ void echo(int connfd)
       else
       {
         file_size = -1;
-        rio_writen(connfd, &file_size, sizeof(long)); // Send the size of the file
+        rio_writen(connfd, &file_size, sizeof(long)); // Send the size of the file as -1 to indicate an error
         printf("File not found: %s\n", filename);
       }
     }
