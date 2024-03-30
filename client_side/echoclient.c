@@ -53,6 +53,7 @@ void get_client(rio_t rio, int connfd, char *filename)
     long file_size;
     ssize_t bytes_read;
     size_t total_bytes_read = 0;
+    size_t bytes_already_written = 0;
     char filebuf[MAXLINE];
     struct timespec ts;
     ts.tv_sec = 0;
@@ -69,22 +70,21 @@ void get_client(rio_t rio, int connfd, char *filename)
     }
 
     // Check if the file already exists, if yes get the file size
-    long file_exists_size = 0;
     FILE *file_exists = fopen(filename, "rb");
     if (file_exists != NULL)
     {
         struct stat file_stat;
+        // File size
         if (fstat(fileno(file_exists), &file_stat) == 0)
         {
-            file_exists_size = file_stat.st_size;
+            bytes_already_written = file_stat.st_size;
         }
         Fclose(file_exists);
         // Set the total bytes read to the file size because these bytes are already written
-        total_bytes_read = file_exists_size;
     }
 
     // Send the desired start position to the server
-    Rio_writen(connfd, &file_exists_size, sizeof(long));
+    Rio_writen(connfd, &bytes_already_written, sizeof(long));
 
     // Open the file in append mode (create it if it doesn't exist)
     FILE *file = Fopen(filename, "ab");
@@ -100,17 +100,17 @@ void get_client(rio_t rio, int connfd, char *filename)
     clock_t start_time = clock();
 
     // Read the file until the total bytes read is equal to the file size
-    while (total_bytes_read < file_size)
+    while ((total_bytes_read + bytes_already_written) < file_size)
     {
         // Read the file in chunks of MAXLINE bytes or less
-        bytes_read = Rio_readnb(&rio, filebuf, MIN(file_size - total_bytes_read, MAXLINE));
+        bytes_read = Rio_readnb(&rio, filebuf, MIN(file_size - (total_bytes_read + bytes_already_written), MAXLINE));
         // Write the chunk to the file
         Fwrite(filebuf, 1, bytes_read, file);
         // Update the total bytes read
         total_bytes_read += bytes_read;
 
         // Display the progress bar
-        progress_bar(total_bytes_read * 100 / file_size);
+        progress_bar((total_bytes_read + bytes_already_written) * 100 / file_size);
 
         // Set SLOW_WRITING to 1 to slow down the write operation (testing purposes)
         if (SLOW_WRITING)
