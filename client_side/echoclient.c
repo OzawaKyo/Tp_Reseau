@@ -123,8 +123,7 @@ int main(int argc, char **argv)
     else if (strncmp(buf, "bye\n", 4) == 0)
     {
       printf("Connection closed.\n");
-      Close(clientfd);
-      exit(0);
+      close_connection(clientfd);
     }
   }
   close_connection(clientfd);
