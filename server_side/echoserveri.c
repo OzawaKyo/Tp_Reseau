@@ -2,8 +2,6 @@
 #define NB_PROC 5
 #define MAX_NAME_LEN 256
 
-pid_t pid_fils[NB_PROC];
-
 void echo(int connfd);
 
 /*
@@ -43,11 +41,7 @@ pid_t create_children()
         { // Exit the function if the process is a child
             return 0;
         }
-        else if (fils > 0)
-        { // Store the process ID of the child process
-            pid_fils[i] = fils;
-        }
-        else
+        else if (fils < 0)
         { // Handle errors
             perror("fork");
             exit(1);
@@ -75,7 +69,6 @@ void socket_child(int listenfd)
     {
         // Accept a connection request from a client
         clientlen = sizeof(clientaddr);
-        // TODO: Recheck slides - S'assurer pour tout les OS + Check result of Accept
         int connfd = Accept(listenfd, (SA *)&clientaddr, &clientlen);
 
         /* determine the name of the client */
