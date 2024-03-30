@@ -11,15 +11,16 @@ void echo(int connfd);
  * (IPv6 is not supported)
  */
 
-// TODO: Rework
+/**
+ * @brief Signal handler function for handling SIGINT signal.
+ */
 void handler(int sig)
 {
-  for (int i = 0; i < NB_PROC; i++)
-  { // Kill all child processes
-    printf("fils mort {%d}\n", pid_fils[i]);
-    kill(SIGINT, pid_fils[i]);
-    waitpid(-1, NULL, 0);
-  }
+  // Kill all children processes
+  kill(SIGINT, -getpid());
+  // Wait for all children processes to terminate
+  waitpid(-1, NULL, 0);
+  // Exit the main process
   exit(0);
 }
 
@@ -129,6 +130,7 @@ int main()
     handle_child_process(listenfd);
   }
 
+  // Exit on a SIGINT signal
   while (1)
     ;
   exit(0);
