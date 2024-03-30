@@ -51,9 +51,12 @@ void get_client(rio_t rio, int connfd, char *filename)
     {
         struct stat file_stat;
         if (fstat(fileno(file_exists), &file_stat) == 0)
+        {
             file_exists_size = file_stat.st_size;
+        }
         Fclose(file_exists);
-        printf("File %s already exists on client. Size: %ld bytes\n", filename, file_exists_size);
+        // Set the total bytes read to the file size because these bytes are already written
+        total_bytes_read = file_exists_size;
     }
 
     // TODO: STOP HERE IF THE FILE EXISTS AND IS THE SAME SIZE
