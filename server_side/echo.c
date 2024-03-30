@@ -1,4 +1,5 @@
 #include "csapp.h"
+#define SMALL_BUF 256 // MAXLINE is too large for user requests (8192B -> 256B)
 
 /**
  * @brief Sends the contents of a file to the client.
@@ -41,7 +42,7 @@ void get_server(int connfd, char *filename)
     // Send the size of the file to the client
     rio_writen(connfd, &file_size, sizeof(long));
 
-    // Send the file to the client in chunks of MAXLINE bytes
+    // Send the file to the client in chunks of 8192 bytes
     while ((bytes_read = Fread(filebuf, 1, MAXLINE, file)) > 0)
     {
         printf("Server sending %ld bytes\n", bytes_read);
@@ -76,19 +77,19 @@ void bye_server(int connfd)
 void echo(int connfd)
 {
     size_t n;
-    char buf[MAXLINE];
+    char buf[SMALL_BUF];
     rio_t rio;
 
     // Initializes a read buffer for the descriptor connfd
     Rio_readinitb(&rio, connfd);
 
     // Reads a line from the descriptor connfd (The clients request)
-    while ((n = Rio_readlineb(&rio, buf, MAXLINE)) != 0) // TODO: Maxline too large for small requests
+    while ((n = Rio_readlineb(&rio, buf, SMALL_BUF)) != 0)
     {
 
         if (strncmp(buf, "get ", 4) == 0)
         { // The client wants to fetch a file
-            char filename[MAXLINE];
+            char filename[SMALL_BUF];
             sscanf(buf + 4, "%s", filename);
             get_server(connfd, filename);
         }
