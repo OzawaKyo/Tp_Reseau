@@ -72,15 +72,29 @@ pid_t create_children()
     { // Exit the function if the process is a child
       return 0;
     }
-    else
+    else if (fils > 0)
     { // Store the process ID of the child process
       pid_fils[i] = fils;
+    }
+    else
+    { // Handle errors
+      perror("fork");
+      exit(1);
     }
 
     i++;
   }
 
   return fils;
+}
+
+void handle_child_process(int listenfd)
+{
+  // Restore default SIGINT behavior
+  Signal(SIGINT, SIG_DFL);
+  // Handle connections
+  socket_fils(listenfd);
+  exit(0); // Ensure child process exits after handling connections
 }
 
 int main()
@@ -96,22 +110,12 @@ int main()
   // New SIGINT behavior for the main process
   Signal(SIGINT, handler);
 
-  // Create NB_PROC child processes
-  fils = create_children();
-
-  if (fils == 0)
-  { // child process
-    // Restore default SIGINT behavior
-    Signal(SIGINT, SIG_DFL);
-    // Handle connections
-    socket_fils(listenfd);
-    exit(0); // Ensure child process exits after handling connections
-  }
-  else if (fils < 0)
+  // Create NB_PROC children processes and handle connections for children
+  if ((fils = create_children()) == 0)
   {
-    perror("fork");
-    exit(0);
+    handle_child_process(listenfd);
   }
+
   while (1)
     ;
   exit(0);
