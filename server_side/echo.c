@@ -32,14 +32,14 @@ void get_server(int connfd, char *filename)
     {
         // if permission denied
         if (errno == EACCES)
-        {
+        { // Permission denied
             file_size = -2;
             rio_writen(connfd, &file_size, sizeof(long));
             printf("Permission denied: %s\n", filename);
             return;
         }
         else if (errno == ENOENT)
-        {
+        { // File not found
             // Send the size of the file as -1 to indicate an error
             file_size = -1;
             rio_writen(connfd, &file_size, sizeof(long));
@@ -47,7 +47,7 @@ void get_server(int connfd, char *filename)
             return;
         }
         else
-        {
+        { // Error opening file
             file_size = -3;
             rio_writen(connfd, &file_size, sizeof(long));
             printf("Error opening file: %s\n", filename);
