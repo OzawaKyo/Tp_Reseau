@@ -1,5 +1,19 @@
 #include "csapp.h"
 
+/**
+ * @brief Sends the contents of a file to the client.
+ *
+ * This function takes a file name and a connection file descriptor as input.
+ * It opens the file in read mode and sends its contents to the client in chunks of MAXLINE bytes.
+ * If the file is not found, it sends the size of the file as -1 to indicate an error.
+ *
+ * @param connfd The connection file descriptor.
+ * @param filename The name of the file to be sent.
+ */
+void get(int connfd, char *filename)
+{
+  // Function implementation
+}
 void get(int connfd, char *filename)
 {
   long file_size;
