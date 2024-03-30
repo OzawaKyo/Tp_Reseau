@@ -1,6 +1,8 @@
 #include "csapp.h"
 #include <time.h>
 
+#define SMALL_BUF 256 // MAXLINE is too large for user requests (8192B -> 256B)
+
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
 /**
@@ -76,7 +78,7 @@ void get_client(rio_t rio, int connfd, char *filename)
 int main(int argc, char **argv)
 {
     int clientfd, port;
-    char *host, buf[MAXLINE];
+    char *host, buf[SMALL_BUF];
     rio_t rio;
 
     if (argc != 2) // Check if the user has provided the host
@@ -103,7 +105,7 @@ int main(int argc, char **argv)
         printf("ftp> ");
 
         // Read the input from the user
-        if (Fgets(buf, MAXLINE, stdin) == NULL)
+        if (Fgets(buf, SMALL_BUF, stdin) == NULL)
         {
             // If the user presses Ctrl+D (EOF), close the connection and exit
             close_connection(clientfd);
@@ -114,7 +116,7 @@ int main(int argc, char **argv)
 
         if (strncmp(buf, "get ", 4) == 0)
         { // The client wants to fetch a file
-            char filename[MAXLINE];
+            char filename[SMALL_BUF];
             sscanf(buf + 4, "%s", filename);
             get_client(rio, clientfd, filename);
         }
