@@ -16,12 +16,12 @@ void echo(int connfd);
  */
 void handler(int sig)
 {
-  // Kill all children processes
-  kill(SIGINT, -getpid());
-  // Wait for all children processes to terminate
-  waitpid(-1, NULL, 0);
-  // Exit the main process
-  exit(0);
+    // Kill all children processes
+    kill(SIGINT, -getpid());
+    // Wait for all children processes to terminate
+    waitpid(-1, NULL, 0);
+    // Exit the main process
+    exit(0);
 }
 
 /**
@@ -31,32 +31,32 @@ void handler(int sig)
  */
 pid_t create_children()
 {
-  pid_t fils;
-  int i = 0;
+    pid_t fils;
+    int i = 0;
 
-  while (i < NB_PROC)
-  {
-    //  Create a child process
-    fils = Fork();
+    while (i < NB_PROC)
+    {
+        //  Create a child process
+        fils = Fork();
 
-    if (fils == 0)
-    { // Exit the function if the process is a child
-      return 0;
+        if (fils == 0)
+        { // Exit the function if the process is a child
+            return 0;
+        }
+        else if (fils > 0)
+        { // Store the process ID of the child process
+            pid_fils[i] = fils;
+        }
+        else
+        { // Handle errors
+            perror("fork");
+            exit(1);
+        }
+
+        i++;
     }
-    else if (fils > 0)
-    { // Store the process ID of the child process
-      pid_fils[i] = fils;
-    }
-    else
-    { // Handle errors
-      perror("fork");
-      exit(1);
-    }
 
-    i++;
-  }
-
-  return fils;
+    return fils;
 }
 
 /**
@@ -66,32 +66,32 @@ pid_t create_children()
  */
 void socket_child(int listenfd)
 {
-  socklen_t clientlen;
-  struct sockaddr_in clientaddr;
-  char client_ip_string[INET_ADDRSTRLEN];
-  char client_hostname[MAX_NAME_LEN];
+    socklen_t clientlen;
+    struct sockaddr_in clientaddr;
+    char client_ip_string[INET_ADDRSTRLEN];
+    char client_hostname[MAX_NAME_LEN];
 
-  while (1)
-  {
-    // Accept a connection request from a client
-    clientlen = sizeof(clientaddr);
-    // TODO: Recheck slides - S'assurer pour tout les OS + Check result of Accept
-    int connfd = Accept(listenfd, (SA *)&clientaddr, &clientlen);
+    while (1)
+    {
+        // Accept a connection request from a client
+        clientlen = sizeof(clientaddr);
+        // TODO: Recheck slides - S'assurer pour tout les OS + Check result of Accept
+        int connfd = Accept(listenfd, (SA *)&clientaddr, &clientlen);
 
-    /* determine the name of the client */
-    Getnameinfo((SA *)&clientaddr, clientlen,
-                client_hostname, MAX_NAME_LEN, 0, 0, 0);
+        /* determine the name of the client */
+        Getnameinfo((SA *)&clientaddr, clientlen,
+                    client_hostname, MAX_NAME_LEN, 0, 0, 0);
 
-    /* determine the textual representation of the client's IP address */
-    Inet_ntop(AF_INET, &clientaddr.sin_addr, client_ip_string,
-              INET_ADDRSTRLEN);
+        /* determine the textual representation of the client's IP address */
+        Inet_ntop(AF_INET, &clientaddr.sin_addr, client_ip_string,
+                  INET_ADDRSTRLEN);
 
-    printf("server connected to %s (%s)\n", client_hostname,
-           client_ip_string);
+        printf("server connected to %s (%s)\n", client_hostname,
+               client_ip_string);
 
-    echo(connfd);
-    Close(connfd);
-  }
+        echo(connfd);
+        Close(connfd);
+    }
 }
 
 /**
@@ -104,34 +104,34 @@ void socket_child(int listenfd)
  */
 void handle_child_process(int listenfd)
 {
-  // Restore default SIGINT behavior
-  Signal(SIGINT, SIG_DFL);
-  // Handle connections
-  socket_child(listenfd);
-  exit(0); // Ensure child process exits after handling connections
+    // Restore default SIGINT behavior
+    Signal(SIGINT, SIG_DFL);
+    // Handle connections
+    socket_child(listenfd);
+    exit(0); // Ensure child process exits after handling connections
 }
 
 int main()
 {
-  int listenfd, port;
-  pid_t fils;
+    int listenfd, port;
+    pid_t fils;
 
-  port = 2121;
+    port = 2121;
 
-  // Create a listening descriptor
-  listenfd = Open_listenfd(port);
+    // Create a listening descriptor
+    listenfd = Open_listenfd(port);
 
-  // New SIGINT behavior for the main process
-  Signal(SIGINT, handler);
+    // New SIGINT behavior for the main process
+    Signal(SIGINT, handler);
 
-  // Create NB_PROC children processes and handle connections for children
-  if ((fils = create_children()) == 0)
-  {
-    handle_child_process(listenfd);
-  }
+    // Create NB_PROC children processes and handle connections for children
+    if ((fils = create_children()) == 0)
+    {
+        handle_child_process(listenfd);
+    }
 
-  // Exit on a SIGINT signal
-  while (1)
-    ;
-  exit(0);
+    // Exit on a SIGINT signal
+    while (1)
+        ;
+    exit(0);
 }
