@@ -1,66 +1,75 @@
 #include "csapp.h"
 
+void get(int connfd, char *filename)
+{
+  long file_size;
+  char filebuf[MAXLINE];
+  ssize_t bytes_read;
+  struct stat file_stat;
+
+  printf("Client requested file %s\n", filename);
+
+  // Open the file in read mode
+  FILE *file = Fopen(filename, "rb");
+
+  // An error occurred while opening the file (file not found)
+  if (file == NULL)
+  {
+    // Send the size of the file as -1 to indicate an error
+    file_size = -1;
+    rio_writen(connfd, &file_size, sizeof(long));
+    printf("File not found: %s\n", filename);
+    return;
+  }
+
+  // Get the size of the file
+  if (fstat(fileno(file), &file_stat) == 0)
+    file_size = file_stat.st_size;
+  else
+    file_size = -1;
+
+  // Send the size of the file to the client
+  rio_writen(connfd, &file_size, sizeof(long));
+
+  // Send the file to the client in chunks of MAXLINE bytes
+  while ((bytes_read = Fread(filebuf, 1, MAXLINE, file)) > 0)
+  {
+    printf("Server sending %ld bytes\n", bytes_read);
+    // Send the chunk to the client
+    Rio_writen(connfd, filebuf, bytes_read);
+  }
+  Fclose(file);
+  printf("File sent and closed: %s\n", filename);
+}
+
 void echo(int connfd)
 {
-    size_t n;
-    char buf[MAXLINE];
-    rio_t rio;
+  size_t n;
+  char buf[MAXLINE];
+  rio_t rio;
 
-    // Initializes a read buffer for the descriptor connfd
-    Rio_readinitb(&rio, connfd); // TODO: WHY ? initialise un tampon de lecture pour le descripteur connfd
+  // Initializes a read buffer for the descriptor connfd
+  Rio_readinitb(&rio, connfd); // TODO: WHY ? initialise un tampon de lecture pour le descripteur connfd
 
-    // Reads a line from the descriptor connfd (The clients request)
-    while ((n = Rio_readlineb(&rio, buf, MAXLINE)) != 0) // TODO: Maxline too large
-    {
-        // If the client wants to get a file
-        if (strncmp(buf, "get ", 4) == 0)
-        {
-            char filename[MAXLINE];
-            sscanf(buf + 4, "%s", filename);
-            printf("Server received request for file %s\n", filename);
+  // Reads a line from the descriptor connfd (The clients request)
+  while ((n = Rio_readlineb(&rio, buf, MAXLINE)) != 0) // TODO: Maxline too large for small requests
+  {
 
-            FILE *file = fopen(filename, "rb");
-            long file_size;
-
-            if (file != NULL)
-            { // If file exists and can be opened
-                char filebuf[MAXLINE];
-                ssize_t bytes_read;
-
-                // DONE : fstat pour avoir la taille du fichier
-                struct stat file_stat;
-                if (fstat(fileno(file), &file_stat) == 0) {
-                    file_size = file_stat.st_size;
-                }else{
-                    file_size = -1;
-                }
-
-                rio_writen(connfd, &file_size, sizeof(long)); // Sending the size of the file
-
-                while ((bytes_read = Fread(filebuf, 1, MAXLINE, file)) > 0) //Reading the file
-                {
-                    printf("Server sending %ld bytes\n", bytes_read);
-                    Rio_writen(connfd, filebuf, bytes_read);                // Sending the file
-                }
-                Fclose(file);
-                printf("File sent and closed: %s\n", filename); 
-            }
-            else
-            {
-                file_size = -1;
-                rio_writen(connfd, &file_size, sizeof(long)); // Send the size of the file as -1 to indicate an error
-                printf("File not found: %s\n", filename);
-            }
-        }
-        else if (strncmp(buf, "bye\n", 4) == 0) // If the client wants to disconnect
-        {
-            printf("Client disconnected\n");   // Print a disconnect message
-            Close(connfd);                     // Close the connection
-            return;
-        }
-        else
-        {
-            printf("Server received %u bytes\n", (unsigned int)n);
-        }
+    if (strncmp(buf, "get ", 4) == 0)
+    { // The client wants to fetch a file
+      char filename[MAXLINE];
+      sscanf(buf + 4, "%s", filename);
+      get(connfd, filename);
     }
+    else if (strncmp(buf, "bye\n", 4) == 0) // If the client wants to disconnect
+    {
+      printf("Client disconnected\n"); // Print a disconnect message
+      Close(connfd);                   // Close the connection
+      return;
+    }
+    else
+    {
+      printf("Server received %u bytes\n", (unsigned int)n);
+    }
+  }
 }
