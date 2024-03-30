@@ -53,6 +53,36 @@ void socket_fils(int listenfd)
   }
 }
 
+/**
+ * Creates NB_PROC children processes.
+ *
+ * @return The process ID of the parent process. Returns 0 for child processes.
+ */
+pid_t create_children()
+{
+  pid_t fils;
+  int i = 0;
+
+  while (i < NB_PROC)
+  {
+    //  Create a child process
+    fils = Fork();
+
+    if (fils == 0)
+    { // Exit the function if the process is a child
+      return 0;
+    }
+    else
+    { // Store the process ID of the child process
+      pid_fils[i] = fils;
+    }
+
+    i++;
+  }
+
+  return fils;
+}
+
 int main()
 {
   int listenfd, port;
@@ -67,25 +97,17 @@ int main()
   Signal(SIGINT, handler);
 
   // Create NB_PROC child processes
-  int i = 0;
-  fils = -1;
-  while (i < NB_PROC && fils != 0)
-  {
-    fils = Fork();
-    i++;
-  }
+  fils = create_children();
 
   if (fils == 0)
   { // child process
+    // Restore default SIGINT behavior
     Signal(SIGINT, SIG_DFL);
+    // Handle connections
     socket_fils(listenfd);
     exit(0); // Ensure child process exits after handling connections
   }
-  else if (fils > 0)
-  { // parent process
-    pid_fils[i] = fils;
-  }
-  else
+  else if (fils < 0)
   {
     perror("fork");
     exit(0);
