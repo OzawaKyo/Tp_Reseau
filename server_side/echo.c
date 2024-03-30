@@ -70,7 +70,7 @@ void echo(int connfd)
     rio_t rio;
 
     // Initializes a read buffer for the descriptor connfd
-    Rio_readinitb(&rio, connfd); // TODO: WHY ? initialise un tampon de lecture pour le descripteur connfd
+    Rio_readinitb(&rio, connfd);
 
     // Reads a line from the descriptor connfd (The clients request)
     while ((n = Rio_readlineb(&rio, buf, MAXLINE)) != 0) // TODO: Maxline too large for small requests
