@@ -14,6 +14,13 @@ void close_connection(int connfd)
   exit(0);
 }
 
+/**
+ * Receive a file from the server and save it locally.
+ *
+ * @param rio The rio_t object for reading from the server.
+ * @param connfd The file descriptor for the connection to the server.
+ * @param filename The name of the file to be saved locally.
+ */
 void get_client(rio_t rio, int connfd, char *filename)
 {
   long file_size;
