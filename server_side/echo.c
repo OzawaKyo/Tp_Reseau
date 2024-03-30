@@ -12,10 +12,6 @@
  */
 void get(int connfd, char *filename)
 {
-  // Function implementation
-}
-void get(int connfd, char *filename)
-{
   long file_size;
   char filebuf[MAXLINE];
   ssize_t bytes_read;
@@ -56,6 +52,17 @@ void get(int connfd, char *filename)
   printf("File sent and closed: %s\n", filename);
 }
 
+/**
+ * @brief Closes the connection with the client.
+ *
+ * @param connfd The file descriptor of the connection with the client.
+ */
+void bye(int connfd)
+{
+  printf("Client disconnected\n");
+  Close(connfd);
+}
+
 void echo(int connfd)
 {
   size_t n;
@@ -75,10 +82,9 @@ void echo(int connfd)
       sscanf(buf + 4, "%s", filename);
       get(connfd, filename);
     }
-    else if (strncmp(buf, "bye\n", 4) == 0) // If the client wants to disconnect
-    {
-      printf("Client disconnected\n"); // Print a disconnect message
-      Close(connfd);                   // Close the connection
+    else if (strncmp(buf, "bye\n", 4) == 0)
+    { // The client wants to disconnect
+      bye(connfd);
       return;
     }
     else
