@@ -63,6 +63,16 @@ void bye_server(int connfd)
     Close(connfd);
 }
 
+/**
+ * @brief Echoes the client's requests.
+ *
+ * This function reads lines from the client's connection descriptor and processes them accordingly.
+ * If the client sends a "get" request, it fetches the specified file.
+ * If the client sends a "bye" request, it disconnects from the server.
+ * Otherwise, it prints the number of bytes received from the client.
+ *
+ * @param connfd The connection descriptor for the client.
+ */
 void echo(int connfd)
 {
     size_t n;
