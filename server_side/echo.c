@@ -22,7 +22,7 @@ void get_server(int connfd, char *filename)
     printf("Client requested file %s\n", filename);
 
     // Open the file in read mode
-    FILE *file = Fopen(filename, "rb");
+    FILE *file = fopen(filename, "rb");
 
     // An error occurred while opening the file (file not found)
     if (file == NULL)
