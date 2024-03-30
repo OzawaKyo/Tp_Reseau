@@ -10,7 +10,7 @@
  * @param connfd The connection file descriptor.
  * @param filename The name of the file to be sent.
  */
-void get(int connfd, char *filename)
+void get_server(int connfd, char *filename)
 {
   long file_size;
   char filebuf[MAXLINE];
@@ -57,7 +57,7 @@ void get(int connfd, char *filename)
  *
  * @param connfd The file descriptor of the connection with the client.
  */
-void bye(int connfd)
+void bye_server(int connfd)
 {
   printf("Client disconnected\n");
   Close(connfd);
@@ -80,11 +80,11 @@ void echo(int connfd)
     { // The client wants to fetch a file
       char filename[MAXLINE];
       sscanf(buf + 4, "%s", filename);
-      get(connfd, filename);
+      get_server(connfd, filename);
     }
     else if (strncmp(buf, "bye\n", 4) == 0)
     { // The client wants to disconnect
-      bye(connfd);
+      bye_server(connfd);
       return;
     }
     else

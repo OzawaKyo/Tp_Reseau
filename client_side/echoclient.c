@@ -14,6 +14,58 @@ void close_connection(int connfd)
   exit(0);
 }
 
+void get_client(rio_t rio, int connfd, char *filename)
+{
+  long file_size;
+  ssize_t bytes_read;
+  size_t total_bytes_read = 0;
+  char filebuf[MAXLINE];
+
+  // Read the size of the file from the server
+  Rio_readnb(&rio, &file_size, sizeof(long));
+
+  // Stop here if an error occurred from the server (File not found)
+  if (file_size == -1)
+  {
+    fprintf(stderr, "Error: File not found on server.\n");
+    return;
+  }
+
+  // Open the file in write mode (create it if it doesn't exist)
+  FILE *file = Fopen(filename, "wb");
+
+  // Check if the file was opened successfully
+  if (file == NULL)
+  {
+    fprintf(stderr, "Error: Failed to open file for writing.\n");
+    return;
+  }
+
+  // Save the start time of the transfer
+  clock_t start_time = clock();
+
+  // Read the file until the total bytes read is equal to the file size
+  while (total_bytes_read < file_size)
+  {
+    // Read the file in chunks of MAXLINE bytes or less
+    bytes_read = Rio_readnb(&rio, filebuf, MIN(file_size - total_bytes_read, MAXLINE));
+    // Write the chunk to the file
+    Fwrite(filebuf, 1, bytes_read, file);
+    // Update the total bytes read
+    total_bytes_read += bytes_read;
+  }
+  Fclose(file);
+  printf("Transfer successfully complete.\n");
+
+  // Save the end time
+  clock_t end_time = clock();
+
+  // Compute the time and average speed
+  double time = (double)(end_time - start_time) / CLOCKS_PER_SEC;
+  double speed = (total_bytes_read / 1024.0) / time;
+  printf("%ld bytes received in %.4f seconds (%.2f Kbytes/s)\n", total_bytes_read, time, speed);
+}
+
 int main(int argc, char **argv)
 {
   int clientfd, port;
@@ -46,9 +98,11 @@ int main(int argc, char **argv)
     // Read the input from the user
     if (Fgets(buf, MAXLINE, stdin) == NULL)
     {
+      // If the user presses Ctrl+D (EOF), close the connection and exit
       close_connection(clientfd);
     }
 
+    // Send the input to the server
     Rio_writen(clientfd, buf, strlen(buf));
 
     // Client wants to get a file
@@ -56,50 +110,7 @@ int main(int argc, char **argv)
     {
       char filename[MAXLINE];
       sscanf(buf + 4, "%s", filename);
-      char filebuf[MAXLINE];
-
-      long file_size;
-      Rio_readnb(&rio, &file_size, sizeof(long)); // Read the size of the file
-
-      // DONE : dont create the file if the server sends an error message (file not found)
-      if (file_size == -1)
-      {
-        printf("Error: File not found on server.\n");
-        continue;
-      }
-      else
-      {
-        FILE *file = Fopen(filename, "wb");
-
-        clock_t start_time = clock(); // Save the start time
-
-        if (file != NULL)
-        {
-          ssize_t bytes_read;
-          size_t total_bytes_read = 0;
-          // Read the file until the total bytes read is equal to the file size
-          while (total_bytes_read < file_size)
-          {
-            // Read the file in chunks of MAXLINE bytes or less
-            bytes_read = Rio_readnb(&rio, filebuf, MIN(file_size - total_bytes_read, MAXLINE));
-            // Write the chunk to the file
-            Fwrite(filebuf, 1, bytes_read, file);
-            // Update the total bytes read
-            total_bytes_read += bytes_read;
-          }
-          Fclose(file);
-          printf("Transfer successfully complete.\n");
-
-          clock_t end_time = clock();                                      // Save the end time
-          double temps = (double)(end_time - start_time) / CLOCKS_PER_SEC; // Calculate the elapsed time
-          double vitesse = (total_bytes_read / 1024.0) / temps;            // Calculate average speed in Kbytes/s
-          printf("%ld bytes received in %.4f seconds (%.2f Kbytes/s)\n", total_bytes_read, temps, vitesse);
-        }
-        else
-        {
-          printf("Error: Failed to open file for writing.\n");
-        }
-      }
+      get_client(rio, clientfd, filename);
     }
     // Client wants to quit
     else if (strncmp(buf, "bye\n", 4) == 0)
