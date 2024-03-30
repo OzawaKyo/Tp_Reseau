@@ -42,6 +42,23 @@ void close_connection(int connfd)
 }
 
 /**
+ * Computes and prints the data transfer statistics.
+ *
+ * This function calculates the time taken for data transfer, the transfer speed,
+ * and prints the results in a formatted manner.
+ *
+ * @param start_time The starting time of the data transfer.
+ * @param end_time The ending time of the data transfer.
+ * @param total_bytes_read The total number of bytes received during the data transfer.
+ */
+void compute_data(int start_time, int end_time, long total_bytes_read)
+{
+    double time = (double)(end_time - start_time) / CLOCKS_PER_SEC;
+    double speed = (total_bytes_read / 1024.0) / time;
+    printf("%ld bytes received in %.4f seconds (%.2f Kbytes/s)\n", total_bytes_read, time, speed);
+}
+
+/**
  * Receive a file from the server and save it locally.
  *
  * @param rio The rio_t object for reading from the server.
@@ -129,9 +146,7 @@ void get_client(rio_t rio, int connfd, char *filename)
     clock_t end_time = clock();
 
     // Compute the time and average speed
-    double time = (double)(end_time - start_time) / CLOCKS_PER_SEC;
-    double speed = (total_bytes_read / 1024.0) / time;
-    printf("%ld bytes received in %.4f seconds (%.2f Kbytes/s)\n", total_bytes_read, time, speed);
+    compute_data(start_time, end_time, total_bytes_read);
 }
 
 int main(int argc, char **argv)
