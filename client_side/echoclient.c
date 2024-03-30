@@ -112,19 +112,19 @@ int main(int argc, char **argv)
     // Send the input to the server
     Rio_writen(clientfd, buf, strlen(buf));
 
-    // Client wants to get a file
     if (strncmp(buf, "get ", 4) == 0)
-    {
+    { // The client wants to fetch a file
       char filename[MAXLINE];
       sscanf(buf + 4, "%s", filename);
       get_client(rio, clientfd, filename);
     }
-    // Client wants to quit
+
     else if (strncmp(buf, "bye\n", 4) == 0)
-    {
+    { // The client wants to disconnect
       printf("Connection closed.\n");
       close_connection(clientfd);
     }
   }
+
   close_connection(clientfd);
 }
