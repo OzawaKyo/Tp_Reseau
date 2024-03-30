@@ -40,8 +40,25 @@ void get_client(rio_t rio, int connfd, char *filename)
         return;
     }
 
-    // Open the file in write mode (create it if it doesn't exist)
-    FILE *file = Fopen(filename, "wb");
+    // Check if the file already exists, if yes get the file size
+    long file_exists_size = 0;
+    FILE *file_exists = fopen(filename, "rb");
+    if (file_exists != NULL)
+    {
+        struct stat file_stat;
+        if (fstat(fileno(file_exists), &file_stat) == 0)
+            file_exists_size = file_stat.st_size;
+        Fclose(file_exists);
+        printf("File %s already exists on client. Size: %ld bytes\n", filename, file_exists_size);
+    }
+
+    // TODO: STOP HERE IF THE FILE EXISTS AND IS THE SAME SIZE
+
+    // Send the desired start position to the server
+    Rio_writen(connfd, &file_exists_size, sizeof(long));
+
+    // Open the file in append mode (create it if it doesn't exist)
+    FILE *file = Fopen(filename, "ab");
 
     // Check if the file was opened successfully
     if (file == NULL)
@@ -54,6 +71,7 @@ void get_client(rio_t rio, int connfd, char *filename)
     clock_t start_time = clock();
 
     // Read the file until the total bytes read is equal to the file size
+    // TODO: REMOVE DEBUG
     while (total_bytes_read < file_size)
     {
         // Read the file in chunks of MAXLINE bytes or less

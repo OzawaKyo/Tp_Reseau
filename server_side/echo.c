@@ -14,6 +14,7 @@
 void get_server(int connfd, char *filename)
 {
     long file_size;
+    long start_pos;
     char filebuf[MAXLINE];
     ssize_t bytes_read;
     struct stat file_stat;
@@ -41,6 +42,11 @@ void get_server(int connfd, char *filename)
 
     // Send the size of the file to the client
     rio_writen(connfd, &file_size, sizeof(long));
+
+    // Get the desired start position from the client
+    rio_readn(connfd, &start_pos, sizeof(long));
+    // Set the file position to the desired start position
+    fseek(file, start_pos, SEEK_SET);
 
     // Send the file to the client in chunks of 8192 bytes
     while ((bytes_read = Fread(filebuf, 1, MAXLINE, file)) > 0)
