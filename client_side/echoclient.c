@@ -7,14 +7,14 @@
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
 /**
- * @brief Displays a progress bar based on the given progress and width.
+ * @brief Displays a progress bar based on the given progress.
  *
- * @param progress The current progress value.
- * @param width The width of the progress bar.
+ * @param progress The current progress value (0-100)
  */
 void progress_bar(int progress)
 {
     int WIDTH = 100;
+
     printf("\r[");
     for (int i = 0; i < WIDTH; ++i)
     {
@@ -24,6 +24,10 @@ void progress_bar(int progress)
             printf(" ");
     }
     printf("] %d%%", progress * 100 / WIDTH);
+    // Print immediately
+    fflush(stdout);
+    if (progress == 100)
+        printf("\n");
 }
 
 /**
@@ -113,12 +117,12 @@ void get_client(rio_t rio, int connfd, char *filename)
             nanosleep(&ts, NULL);
     }
     Fclose(file);
-    printf("\nTransfer successfully complete.\n");
+
+    printf("Transfer successfully complete.\n");
 
     // Save the end time
     clock_t end_time = clock();
 
-    // TODO: Rework this part with crash handling
     // Compute the time and average speed
     double time = (double)(end_time - start_time) / CLOCKS_PER_SEC;
     double speed = (total_bytes_read / 1024.0) / time;
