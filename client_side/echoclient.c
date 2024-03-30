@@ -7,6 +7,26 @@
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
 /**
+ * @brief Displays a progress bar based on the given progress and width.
+ *
+ * @param progress The current progress value.
+ * @param width The width of the progress bar.
+ */
+void progress_bar(int progress)
+{
+    int WIDTH = 100;
+    printf("\r[");
+    for (int i = 0; i < WIDTH; ++i)
+    {
+        if (i < progress)
+            printf("#");
+        else
+            printf(" ");
+    }
+    printf("] %d%%", progress * 100 / WIDTH);
+}
+
+/**
  * Closes the connection and exits the program.
  *
  * @param connfd The file descriptor of the connection to be closed.
@@ -32,7 +52,7 @@ void get_client(rio_t rio, int connfd, char *filename)
     char filebuf[MAXLINE];
     struct timespec ts;
     ts.tv_sec = 0;
-    ts.tv_nsec = 100 * 1000000; // 100 milliseconds
+    ts.tv_nsec = 10 * 1000000; // 100 milliseconds
 
     // Read the size of the file from the server
     Rio_readnb(&rio, &file_size, sizeof(long));
@@ -58,8 +78,6 @@ void get_client(rio_t rio, int connfd, char *filename)
         // Set the total bytes read to the file size because these bytes are already written
         total_bytes_read = file_exists_size;
     }
-
-    // TODO: STOP HERE IF THE FILE EXISTS AND IS THE SAME SIZE
 
     // Send the desired start position to the server
     Rio_writen(connfd, &file_exists_size, sizeof(long));
@@ -87,12 +105,15 @@ void get_client(rio_t rio, int connfd, char *filename)
         // Update the total bytes read
         total_bytes_read += bytes_read;
 
+        // Display the progress bar
+        progress_bar(total_bytes_read * 100 / file_size);
+
         // Set SLOW_WRITING to 1 to slow down the write operation (testing purposes)
         if (SLOW_WRITING)
             nanosleep(&ts, NULL);
     }
     Fclose(file);
-    printf("Transfer successfully complete.\n");
+    printf("\nTransfer successfully complete.\n");
 
     // Save the end time
     clock_t end_time = clock();
