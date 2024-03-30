@@ -23,36 +23,6 @@ void handler(int sig)
   exit(0);
 }
 
-void socket_fils(int listenfd)
-{
-  socklen_t clientlen;
-  struct sockaddr_in clientaddr;
-  char client_ip_string[INET_ADDRSTRLEN];
-  char client_hostname[MAX_NAME_LEN];
-
-  while (1)
-  {
-    // Accept a connection request from a client
-    clientlen = sizeof(clientaddr);
-    // TODO: Recheck slides - S'assurer pour tout les OS + Check result of Accept
-    int connfd = Accept(listenfd, (SA *)&clientaddr, &clientlen);
-
-    /* determine the name of the client */
-    Getnameinfo((SA *)&clientaddr, clientlen,
-                client_hostname, MAX_NAME_LEN, 0, 0, 0);
-
-    /* determine the textual representation of the client's IP address */
-    Inet_ntop(AF_INET, &clientaddr.sin_addr, client_ip_string,
-              INET_ADDRSTRLEN);
-
-    printf("server connected to %s (%s)\n", client_hostname,
-           client_ip_string);
-
-    echo(connfd);
-    Close(connfd);
-  }
-}
-
 /**
  * Creates NB_PROC children processes.
  *
@@ -88,12 +58,55 @@ pid_t create_children()
   return fils;
 }
 
+/**
+ * Function to handle the communication with a client socket.
+ *
+ * @param listenfd The file descriptor of the listening socket.
+ */
+void socket_child(int listenfd)
+{
+  socklen_t clientlen;
+  struct sockaddr_in clientaddr;
+  char client_ip_string[INET_ADDRSTRLEN];
+  char client_hostname[MAX_NAME_LEN];
+
+  while (1)
+  {
+    // Accept a connection request from a client
+    clientlen = sizeof(clientaddr);
+    // TODO: Recheck slides - S'assurer pour tout les OS + Check result of Accept
+    int connfd = Accept(listenfd, (SA *)&clientaddr, &clientlen);
+
+    /* determine the name of the client */
+    Getnameinfo((SA *)&clientaddr, clientlen,
+                client_hostname, MAX_NAME_LEN, 0, 0, 0);
+
+    /* determine the textual representation of the client's IP address */
+    Inet_ntop(AF_INET, &clientaddr.sin_addr, client_ip_string,
+              INET_ADDRSTRLEN);
+
+    printf("server connected to %s (%s)\n", client_hostname,
+           client_ip_string);
+
+    echo(connfd);
+    Close(connfd);
+  }
+}
+
+/**
+ * @brief Handles the child process for handling connections.
+ *
+ * This function restores the default SIGINT behavior, handles connections using the socket_child function,
+ * and ensures that the child process exits after handling connections.
+ *
+ * @param listenfd The file descriptor of the listening socket.
+ */
 void handle_child_process(int listenfd)
 {
   // Restore default SIGINT behavior
   Signal(SIGINT, SIG_DFL);
   // Handle connections
-  socket_fils(listenfd);
+  socket_child(listenfd);
   exit(0); // Ensure child process exits after handling connections
 }
 
