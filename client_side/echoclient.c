@@ -1,7 +1,8 @@
 #include "csapp.h"
 #include <time.h>
 
-#define SMALL_BUF 256 // MAXLINE is too large for user requests (8192B -> 256B)
+#define SMALL_BUF 256  // MAXLINE is too large for user requests (8192B -> 256B)
+#define SLOW_WRITING 1 // Set to 1 to slow down the write operation (testing purposes)
 
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
@@ -29,6 +30,9 @@ void get_client(rio_t rio, int connfd, char *filename)
     ssize_t bytes_read;
     size_t total_bytes_read = 0;
     char filebuf[MAXLINE];
+    struct timespec ts;
+    ts.tv_sec = 0;
+    ts.tv_nsec = 100 * 1000000; // 100 milliseconds
 
     // Read the size of the file from the server
     Rio_readnb(&rio, &file_size, sizeof(long));
@@ -71,7 +75,6 @@ void get_client(rio_t rio, int connfd, char *filename)
     clock_t start_time = clock();
 
     // Read the file until the total bytes read is equal to the file size
-    // TODO: REMOVE DEBUG
     while (total_bytes_read < file_size)
     {
         // Read the file in chunks of MAXLINE bytes or less
@@ -80,6 +83,10 @@ void get_client(rio_t rio, int connfd, char *filename)
         Fwrite(filebuf, 1, bytes_read, file);
         // Update the total bytes read
         total_bytes_read += bytes_read;
+
+        // Set SLOW_WRITING to 1 to slow down the write operation (testing purposes)
+        if (SLOW_WRITING)
+            nanosleep(&ts, NULL);
     }
     Fclose(file);
     printf("Transfer successfully complete.\n");
@@ -87,6 +94,7 @@ void get_client(rio_t rio, int connfd, char *filename)
     // Save the end time
     clock_t end_time = clock();
 
+    // TODO: Rework this part with crash handling
     // Compute the time and average speed
     double time = (double)(end_time - start_time) / CLOCKS_PER_SEC;
     double speed = (total_bytes_read / 1024.0) / time;
