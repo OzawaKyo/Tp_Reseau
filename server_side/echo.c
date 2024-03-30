@@ -88,7 +88,7 @@ void echo(int connfd)
       return;
     }
     else
-    {
+    { // The client sent a random message
       printf("Server received %u bytes\n", (unsigned int)n);
     }
   }
