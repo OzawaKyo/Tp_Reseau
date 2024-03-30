@@ -27,11 +27,29 @@ void get_server(int connfd, char *filename)
     // An error occurred while opening the file (file not found)
     if (file == NULL)
     {
-        // Send the size of the file as -1 to indicate an error
-        file_size = -1;
-        rio_writen(connfd, &file_size, sizeof(long));
-        printf("File not found: %s\n", filename);
-        return;
+        //if permission denied
+        if (errno == EACCES)
+        {
+            file_size = -2;
+            rio_writen(connfd, &file_size, sizeof(long));
+            printf("Permission denied: %s\n", filename);
+            return;
+        }else if (errno == ENOENT)
+        {
+            // Send the size of the file as -1 to indicate an error
+            file_size = -1;
+            rio_writen(connfd, &file_size, sizeof(long));
+            printf("File not found: %s\n", filename);
+            return;
+        }
+        else
+        {
+            file_size = -3;
+            rio_writen(connfd, &file_size, sizeof(long));
+            printf("Error opening file: %s\n", filename);
+            return;
+        }
+        
     }
 
     // Get the size of the file

@@ -68,6 +68,11 @@ void get_client(rio_t rio, int connfd, char *filename)
         fprintf(stderr, "Error: File not found on server.\n");
         return;
     }
+    if (file_size == -2)
+    {
+        fprintf(stderr, "Error: Permission denied for this file.\n");
+        return;
+    }
 
     // Check if the file already exists, if yes get the file size
     FILE *file_exists = fopen(filename, "rb");
