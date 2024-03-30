@@ -6,7 +6,10 @@
  *
  * This function takes a file name and a connection file descriptor as input.
  * It opens the file in read mode and sends its contents to the client in chunks of MAXLINE bytes.
- * If the file is not found, it sends the size of the file as -1 to indicate an error.
+ * If an error occurs it sends a negative value to the client.
+ * -1: File not found
+ * -2: Permission denied
+ * -3: Error opening file
  *
  * @param connfd The connection file descriptor.
  * @param filename The name of the file to be sent.
@@ -27,14 +30,15 @@ void get_server(int connfd, char *filename)
     // An error occurred while opening the file (file not found)
     if (file == NULL)
     {
-        //if permission denied
+        // if permission denied
         if (errno == EACCES)
         {
             file_size = -2;
             rio_writen(connfd, &file_size, sizeof(long));
             printf("Permission denied: %s\n", filename);
             return;
-        }else if (errno == ENOENT)
+        }
+        else if (errno == ENOENT)
         {
             // Send the size of the file as -1 to indicate an error
             file_size = -1;
@@ -49,7 +53,6 @@ void get_server(int connfd, char *filename)
             printf("Error opening file: %s\n", filename);
             return;
         }
-        
     }
 
     // Get the size of the file
