@@ -17,15 +17,18 @@ Le projet dépend de la bibliothèque `csapp.c` qui fournit des wrappers pour di
 ## Compilation
 
 Pour compiler le projet, seulement depuis le /server_side, utilisez la commande suivante :
-Make
+
+`Make`
 
 ## Utilisation
 
 Pour démarrer le serveur, exécuter depuis /server_side :
-./echoserver 
+
+`./echoserver` 
 
 Pour connecter un client au serveur, utiliser depuis le client_side :
-./echoclient <hostname>
+
+`./echoclient <hostname>`
 Remplacez <hostname> par l'adresse du serveur, ou par localhost sur le même ordi.
 
 Une fois connecté, vous pouvez utiliser la commande get <filename> pour télécharger un fichier depuis le serveur, et bye pour fermer la connexion.
